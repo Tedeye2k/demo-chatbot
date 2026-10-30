@@ -1,0 +1,923 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#101713">
+    <title>Resparkit — Article Assistant</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <style>
+        :root {
+            color-scheme: light;
+            --ink: #17231d;
+            --muted: #78847d;
+            --line: #e7ebe6;
+            --green: #245b43;
+            --green-dark: #174530;
+            --green-light: #e9f2e9;
+            --canvas: #f7f8f5;
+            --white: #fff;
+            --sidebar: #101713;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: var(--canvas);
+            color: var(--ink);
+            font: 15px/1.6 "DM Sans", sans-serif;
+        }
+
+        button,
+        textarea {
+            font: inherit;
+        }
+
+        button {
+            cursor: pointer;
+        }
+
+        .app {
+            display: grid;
+            grid-template-columns: 250px minmax(0, 1fr);
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            padding: 27px 18px 20px;
+            background: var(--sidebar);
+            color: #eef4ef;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            padding: 0 8px 31px;
+        }
+
+        .brand-mark {
+            display: grid;
+            width: 36px;
+            height: 36px;
+            place-items: center;
+            border-radius: 12px;
+            background: linear-gradient(145deg, #d3f0d4, #7db68a);
+            color: #183d29;
+            font: 800 18px Manrope, sans-serif;
+        }
+
+        .brand-name {
+            font: 700 14px Manrope, sans-serif;
+        }
+
+        .brand-sub {
+            display: block;
+            margin-top: 1px;
+            color: #91a198;
+            font-size: 9px;
+            letter-spacing: .14em;
+            text-transform: uppercase;
+        }
+
+        .new-chat {
+            display: flex;
+            width: 100%;
+            height: 44px;
+            align-items: center;
+            justify-content: center;
+            gap: 9px;
+            border: 1px solid #34443a;
+            border-radius: 12px;
+            background: #1b2921;
+            color: #f2f8f3;
+            font-weight: 600;
+            transition: background .2s, border-color .2s;
+        }
+
+        .new-chat:hover {
+            border-color: #58705f;
+            background: #26372c;
+        }
+
+        .plus {
+            font-size: 20px;
+            font-weight: 400;
+            line-height: 1;
+        }
+
+        .side-label {
+            margin: 28px 9px 10px;
+            color: #7e9084;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: .14em;
+            text-transform: uppercase;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            padding: 10px 11px;
+            border-radius: 10px;
+            color: #c0ccc3;
+            font-size: 13px;
+        }
+
+        .nav-item.active {
+            background: #213128;
+            color: #e5f4e8;
+        }
+
+        .nav-icon {
+            width: 17px;
+            color: #a7bca9;
+            text-align: center;
+        }
+
+        .sidebar-bottom {
+            margin-top: auto;
+        }
+
+        .collection-card {
+            padding: 14px;
+            border: 1px solid #2d3b32;
+            border-radius: 13px;
+            background: linear-gradient(140deg, #1d2b22, #152019);
+        }
+
+        .collection-card strong {
+            font: 600 12px Manrope, sans-serif;
+        }
+
+        .collection-card p {
+            margin: 6px 0 0;
+            color: #a2b0a6;
+            font-size: 11px;
+            line-height: 1.55;
+        }
+
+        .profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 20px;
+            padding: 14px 5px 0;
+            border-top: 1px solid #2b3930;
+        }
+
+        .avatar {
+            display: grid;
+            width: 31px;
+            height: 31px;
+            place-items: center;
+            border-radius: 50%;
+            background: #30483a;
+            color: #d9f0dd;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .profile-name {
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .profile-note {
+            color: #84958a;
+            font-size: 10px;
+        }
+
+        /* Main layout */
+
+        .main {
+            display: flex;
+            min-width: 0;
+            min-height: 100vh;
+            flex-direction: column;
+        }
+
+        .topbar {
+            display: flex;
+            height: 68px;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 clamp(22px, 5vw, 70px);
+            border-bottom: 1px solid var(--line);
+            background: #ffffffdc;
+        }
+
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            color: #8a948d;
+            font-size: 12px;
+        }
+
+        .breadcrumb strong {
+            color: #47564c;
+            font-weight: 600;
+        }
+
+        .top-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .ready-status {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            color: #7a867e;
+            font-size: 11px;
+        }
+
+        .status-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #60a775;
+            box-shadow: 0 0 0 3px #60a77520;
+        }
+
+        .top-avatar {
+            display: grid;
+            width: 31px;
+            height: 31px;
+            place-items: center;
+            border: 1px solid #e4e9e3;
+            border-radius: 50%;
+            background: #fff;
+            color: #516158;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .content {
+            display: flex;
+            width: min(900px, calc(100% - 48px));
+            flex: 1;
+            flex-direction: column;
+            margin: 0 auto;
+            padding: 39px 0 24px;
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #52745d;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: .15em;
+            text-transform: uppercase;
+        }
+
+        .sparkle {
+            color: #80ae89;
+            font-size: 15px;
+        }
+
+        .welcome h1 {
+            margin: 13px 0 10px;
+            font: 600 clamp(30px, 4vw, 43px)/1.16 Manrope, sans-serif;
+            letter-spacing: -.045em;
+        }
+
+        .welcome h1 span {
+            color: #648670;
+        }
+
+        .welcome>p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        /* Suggested prompts */
+
+        .suggestions {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-top: 26px;
+        }
+
+        .suggestion {
+            min-height: 88px;
+            padding: 13px 14px;
+            border: 1px solid var(--line);
+            border-radius: 13px;
+            background: var(--white);
+            color: #435249;
+            text-align: left;
+            transition: transform .2s, border-color .2s, box-shadow .2s;
+        }
+
+        .suggestion:hover {
+            transform: translateY(-2px);
+            border-color: #b8d2bd;
+            box-shadow: 0 9px 24px #1a38200b;
+        }
+
+        .suggestion-icon {
+            display: block;
+            margin-bottom: 7px;
+            color: #72977b;
+            font-size: 14px;
+        }
+
+        .suggestion-text {
+            font-size: 12px;
+            font-weight: 600;
+            line-height: 1.45;
+        }
+
+        /* Chat messages */
+
+        .chat-area {
+            flex: 1;
+            min-height: 180px;
+            margin-top: 28px;
+            padding: 19px 0 12px;
+            border-top: 1px solid var(--line);
+        }
+
+        .conversation-label {
+            margin: 0 0 17px;
+            color: #9aa39d;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: .13em;
+            text-transform: uppercase;
+        }
+
+        #messages {
+            display: flex;
+            flex-direction: column;
+            gap: 17px;
+        }
+
+        .message-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 11px;
+            animation: rise .25s ease-out;
+        }
+
+        .message-row.user-row {
+            justify-content: flex-end;
+        }
+
+        .mini-avatar {
+            display: grid;
+            width: 29px;
+            height: 29px;
+            flex: 0 0 29px;
+            place-items: center;
+            border-radius: 9px;
+            background: #e3efe5;
+            color: #477253;
+            font: 800 12px Manrope, sans-serif;
+        }
+
+        .bubble {
+            max-width: min(690px, 86%);
+            padding: 13px 16px;
+            border: 1px solid #e7ebe7;
+            border-radius: 4px 15px 15px 15px;
+            background: #fff;
+            color: #35433a;
+            font-size: 13px;
+            line-height: 1.75;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+            box-shadow: 0 3px 12px #1b342008;
+        }
+
+        .user-row .bubble {
+            border-color: var(--green);
+            border-radius: 15px 4px 15px 15px;
+            background: var(--green);
+            color: #fff;
+        }
+
+        .bubble a {
+            color: #286747;
+            font-weight: 700;
+            text-decoration: none;
+            border-bottom: 1px solid #b7d6c1;
+        }
+
+        .bubble a:hover {
+            border-color: #286747;
+        }
+
+        /* Message composer */
+
+        .composer-wrap {
+            position: sticky;
+            bottom: 0;
+            padding-top: 18px;
+            background: linear-gradient(180deg, #f7f8f500, var(--canvas) 22%);
+        }
+
+        .composer {
+            display: flex;
+            align-items: flex-end;
+            gap: 10px;
+            padding: 9px 9px 9px 16px;
+            border: 1px solid #dfe5df;
+            border-radius: 16px;
+            background: #fff;
+            box-shadow: 0 10px 35px #1d36200b;
+            transition: border-color .2s, box-shadow .2s;
+        }
+
+        .composer:focus-within {
+            border-color: #91b59a;
+            box-shadow: 0 0 0 3px #9dc5a31c, 0 10px 35px #1d36200b;
+        }
+
+        #question {
+            display: block;
+            min-width: 0;
+            min-height: 38px;
+            max-height: 120px;
+            flex: 1;
+            resize: none;
+            padding: 8px 0;
+            border: 0;
+            outline: 0;
+            background: transparent;
+            color: #23332a;
+            font: 13px/1.6 "DM Sans", sans-serif;
+        }
+
+        #question::placeholder {
+            color: #a0aaa3;
+        }
+
+        #send {
+            display: grid;
+            width: 39px;
+            height: 39px;
+            flex: 0 0 39px;
+            place-items: center;
+            border: 0;
+            border-radius: 11px;
+            background: var(--green);
+            color: #fff;
+            transition: background .2s, transform .2s;
+        }
+
+        #send:hover {
+            transform: translateY(-1px);
+            background: var(--green-dark);
+        }
+
+        #send:disabled {
+            cursor: wait;
+            opacity: .5;
+        }
+
+        #send svg {
+            width: 17px;
+            height: 17px;
+        }
+
+        .composer-hint {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 8px 4px 0;
+            color: #9ca69f;
+            font-size: 10px;
+        }
+
+        .footer {
+            padding: 12px 24px 17px;
+            color: #a1aaa4;
+            font-size: 10px;
+            text-align: center;
+        }
+
+        .typing {
+            display: flex;
+            min-height: 19px;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .typing i {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: #88a492;
+            animation: pulse 1s infinite;
+        }
+
+        .typing i:nth-child(2) {
+            animation-delay: .15s;
+        }
+
+        .typing i:nth-child(3) {
+            animation-delay: .3s;
+        }
+
+        @keyframes rise {
+            from {
+                opacity: 0;
+                transform: translateY(5px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulse {
+
+            0%,
+            60%,
+            100% {
+                opacity: .35;
+                transform: translateY(0);
+            }
+
+            30% {
+                opacity: 1;
+                transform: translateY(-3px);
+            }
+        }
+
+        @media (max-width: 760px) {
+            .app {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                display: none;
+            }
+
+            .topbar {
+                height: 59px;
+                padding: 0 18px;
+            }
+
+            .content {
+                width: min(100% - 34px, 700px);
+                padding-top: 29px;
+            }
+
+            .welcome h1 {
+                font-size: 32px;
+            }
+
+            .suggestions {
+                grid-template-columns: 1fr;
+                gap: 8px;
+                margin-top: 19px;
+            }
+
+            .suggestion {
+                display: flex;
+                min-height: 0;
+                align-items: center;
+                gap: 10px;
+                padding: 11px 13px;
+            }
+
+            .suggestion-icon {
+                margin: 0;
+            }
+
+            .chat-area {
+                margin-top: 22px;
+            }
+
+            .ready-status {
+                font-size: 0;
+            }
+
+            .composer-hint {
+                font-size: 9px;
+            }
+
+            .footer {
+                padding-bottom: 11px;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+
+            *,
+            *::before,
+            *::after {
+                scroll-behavior: auto !important;
+                animation-duration: .01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: .01ms !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app">
+        <aside class="sidebar" aria-label="Main navigation">
+            <div class="brand">
+                <div class="brand-mark">r.</div>
+                <div class="brand-name">
+                    resparkit
+                    <span class="brand-sub">article intelligence</span>
+                </div>
+            </div>
+
+            <button class="new-chat" id="new-chat" type="button">
+                <span class="plus">＋</span>
+                New conversation
+            </button>
+
+            <div class="side-label">Workspace</div>
+            <div class="nav-item active"><span class="nav-icon">✳</span> Article assistant</div>
+            <div class="nav-item"><span class="nav-icon">▤</span> Resparkit library</div>
+
+            <div class="sidebar-bottom">
+                <div class="side-label">Your source</div>
+                <div class="collection-card">
+                    <strong>Resparkit articles</strong>
+                    <p>Ask questions across the collected articles and explore the original sources.</p>
+                </div>
+
+                <div class="profile">
+                    <div class="avatar">G</div>
+                    <div>
+                        <div class="profile-name">Guest workspace</div>
+                        <div class="profile-note">Personal research space</div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main">
+            <header class="topbar">
+                <div class="breadcrumb">Workspace <span>›</span> <strong>Article assistant</strong></div>
+                <div class="top-right">
+                    <div class="ready-status"><span class="status-dot"></span> Ready to answer</div>
+                    <div class="top-avatar">G</div>
+                </div>
+            </header>
+
+            <div class="content">
+                <section class="welcome" id="welcome">
+                    <div class="eyebrow"><span class="sparkle">✳</span> Resparkit knowledge assistant</div>
+                    <h1>Good ideas start<br>with a <span>good question.</span></h1>
+                    <p>Explore insights from Resparkit’s articles. Ask naturally; sources are included with every
+                        answer.</p>
+
+                    <div class="suggestions" aria-label="Suggested questions">
+                        <button class="suggestion" type="button"
+                            data-prompt="What are the main themes across the articles?">
+                            <span class="suggestion-icon">✳</span>
+                            <span class="suggestion-text">What are the main themes across the articles?</span>
+                        </button>
+
+                        <button class="suggestion" type="button"
+                            data-prompt="What practical advice do the articles offer?">
+                            <span class="suggestion-icon">⌁</span>
+                            <span class="suggestion-text">What practical advice do the articles offer?</span>
+                        </button>
+
+                        <button class="suggestion" type="button"
+                            data-prompt="Give me a quick overview of the articles.">
+                            <span class="suggestion-icon">↗</span>
+                            <span class="suggestion-text">Give me a quick overview of the articles.</span>
+                        </button>
+                    </div>
+                </section>
+
+                <section class="chat-area" aria-label="Article assistant chat">
+                    <p class="conversation-label">Conversation</p>
+                    <div id="messages" aria-live="polite">
+                        <div class="message-row">
+                            <div class="mini-avatar">r.</div>
+                            <div class="bubble">
+                                Welcome. I can help you find ideas, advice, and answers across the Resparkit articles.
+                                What would you like to explore?
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <div class="composer-wrap">
+                    <form class="composer" id="chat-form">
+                        <textarea id="question" name="question" maxlength="1200" rows="1" autocomplete="off"
+                            placeholder="Ask anything about the articles…" aria-label="Your question"
+                            required></textarea>
+
+                        <button id="send" type="submit" aria-label="Send question" title="Send question">
+                            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                <path d="M12 19V5m0 0 6 6m-6-6-6 6" stroke="currentColor" stroke-width="1.8"
+                                    stroke-linecap="round" stroke-linejoin="round" />
+                            </svg>
+                        </button>
+                    </form>
+
+                    <div class="composer-hint">
+                        <span>Answers are grounded in collected Resparkit articles.</span>
+                        <span>Enter to send · Shift + Enter for a new line</span>
+                    </div>
+                </div>
+            </div>
+
+            <footer class="footer">
+                Resparkit Article Intelligence · Follow the source links to read the full articles.
+            </footer>
+        </main>
+    </div>
+
+    <script>
+        const form = document.querySelector("#chat-form");
+        const input = document.querySelector("#question");
+        const messages = document.querySelector("#messages");
+        const send = document.querySelector("#send");
+        const welcome = document.querySelector("#welcome");
+
+        function addMessage(text, role) {
+            const row = document.createElement("div");
+            row.className = `message-row ${role === "user" ? "user-row" : ""}`;
+
+            if (role === "assistant") {
+                const icon = document.createElement("div");
+                icon.className = "mini-avatar";
+                icon.textContent = "r.";
+                row.append(icon);
+            }
+
+            const bubble = document.createElement("div");
+            bubble.className = "bubble";
+
+            if (role === "user") {
+                bubble.textContent = text;
+                row.append(bubble);
+                messages.append(row);
+                row.scrollIntoView({ behavior: "smooth", block: "nearest" });
+                return row;
+            }
+
+            // Turn source citations into safe clickable links.
+            const citationPattern = /\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g;
+            let cursor = 0;
+
+            for (const match of text.matchAll(citationPattern)) {
+                bubble.append(document.createTextNode(text.slice(cursor, match.index)));
+
+                try {
+                    const url = new URL(match[2]);
+
+                    if (url.hostname === "resparkit.com" || url.hostname === "www.resparkit.com") {
+                        const link = document.createElement("a");
+                        link.href = url.href;
+                        link.target = "_blank";
+                        link.rel = "noopener noreferrer";
+                        link.textContent = match[1];
+                        bubble.append(link);
+                    } else {
+                        bubble.append(document.createTextNode(match[1]));
+                    }
+                } catch {
+                    bubble.append(document.createTextNode(match[1]));
+                }
+
+                cursor = match.index + match[0].length;
+            }
+
+            bubble.append(document.createTextNode(text.slice(cursor)));
+            row.append(bubble);
+            messages.append(row);
+            row.scrollIntoView({ behavior: "smooth", block: "nearest" });
+            return row;
+        }
+
+        function showThinking() {
+            const row = document.createElement("div");
+            row.className = "message-row";
+
+            const icon = document.createElement("div");
+            icon.className = "mini-avatar";
+            icon.textContent = "r.";
+
+            const bubble = document.createElement("div");
+            bubble.className = "bubble";
+
+            const dots = document.createElement("span");
+            dots.className = "typing";
+            dots.setAttribute("aria-label", "Searching the articles");
+
+            for (let i = 0; i < 3; i++) {
+                dots.append(document.createElement("i"));
+            }
+
+            bubble.append(dots);
+            row.append(icon, bubble);
+            messages.append(row);
+            row.scrollIntoView({ behavior: "smooth", block: "nearest" });
+            return row;
+        }
+
+        async function ask(question) {
+            question = question.trim();
+
+            if (!question || send.disabled) {
+                return;
+            }
+
+            welcome.hidden = true;
+            addMessage(question, "user");
+            input.value = "";
+            input.style.height = "auto";
+            send.disabled = true;
+
+            const thinking = showThinking();
+
+            try {
+                const response = await fetch("/api/chat", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ question })
+                });
+
+                const result = await response.json();
+                thinking.remove();
+
+                if (!response.ok) {
+                    throw new Error(result.error || "Something went wrong. Please try again.");
+                }
+
+                addMessage(result.answer || "I couldn't find an answer in the articles.", "assistant");
+            } catch (error) {
+                thinking.remove();
+                addMessage(error.message || "I couldn't reach the assistant. Please try again.", "assistant");
+            } finally {
+                send.disabled = false;
+                input.focus();
+            }
+        }
+
+        form.addEventListener("submit", (event) => {
+            event.preventDefault();
+            ask(input.value);
+        });
+
+        input.addEventListener("keydown", (event) => {
+            if (event.key === "Enter" && !event.shiftKey) {
+                event.preventDefault();
+                form.requestSubmit();
+            }
+        });
+
+        input.addEventListener("input", () => {
+            input.style.height = "auto";
+            input.style.height = `${Math.min(input.scrollHeight, 120)}px`;
+        });
+
+        document.querySelectorAll("[data-prompt]").forEach((button) => {
+            button.addEventListener("click", () => ask(button.dataset.prompt));
+        });
+
+        document.querySelector("#new-chat").addEventListener("click", () => {
+            messages.innerHTML = `
+        <div class="message-row">
+          <div class="mini-avatar">r.</div>
+          <div class="bubble">Welcome back. What would you like to explore in the articles?</div>
+        </div>
+      `;
+            welcome.hidden = false;
+            input.value = "";
+            input.focus();
+        });
+    </script>
+</body>
+
+</html>
